@@ -1,0 +1,18 @@
+import { chromium } from 'playwright-core';
+const b = await chromium.launch({ executablePath: process.env.HOME + '/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome', args: ['--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
+const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type()==='error' && errs.push(m.text()));
+await p.goto('http://127.0.0.1:5180/?test=1&rs=0.3', { waitUntil: 'networkidle' });
+await p.screenshot({ path: 'qa/ui/390x844-idle-v2.png' });
+for (let i = 0; i < 6; i++) await p.click('#btnStart');
+const s1 = await p.evaluate(() => window.__amadeusDemo.state());
+await p.click('#btnSkip');
+const s2 = await p.evaluate(() => window.__amadeusDemo.state());
+await p.waitForFunction(() => document.getElementById('stage').dataset.phase === 'ended', null, { timeout: 60000 });
+const s3 = await p.evaluate(() => window.__amadeusDemo.state());
+await p.click('#btnFull');
+const th = await p.evaluate(() => ({ theater: document.getElementById('app').dataset.theater, fs: !!document.fullscreenElement, label: document.getElementById('btnFull').getAttribute('aria-label') }));
+await p.keyboard.press('Escape');
+const s4 = await p.evaluate(() => window.__amadeusDemo.state());
+console.log(JSON.stringify({ s1: [s1.runId, s1.rafScheduled, s1.phase], s2: [s2.skipRequested, s2.outcome, s2.waiting, s2.showT], s3: [s3.phase, s3.outcome, s3.shown, s3.rafScheduled], th, s4: [s4.phase, s4.shown], errs }));
+await b.close();

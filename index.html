@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="amadeus-animation" content="R6-E 68ee141" />
+    <title>世界线穿梭 · 转场视觉原型</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230c0b0a'/%3E%3Cpath d='M11 26V11a5 5 0 0 1 10 0v15' fill='none' stroke='%23ff8a2e' stroke-width='2'/%3E%3Cpath d='M16 10v12' stroke='%23ffd2a0' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='8' y='25' width='16' height='3' fill='%23ff8a2e'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app" data-phase="idle">
+      <main class="theatre" id="theatre">
+        <div class="stage" id="stage" data-phase="idle" data-outcome="" data-shown="">
+          <canvas id="gl" role="img" aria-label="世界线转场演出画面"></canvas>
+
+          <section class="intro" id="intro" aria-labelledby="introTitle">
+            <header class="intro-head">
+              <svg class="mark" viewBox="0 0 48 48" aria-label="AMADEUS 转场原型标记" role="img" fill="none">
+                <path d="M15 40V15a9 9 0 0 1 18 0v25" stroke="currentColor" stroke-width="1.6" />
+                <path d="M24 12v20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" class="mark-wire" />
+                <circle cx="24" cy="36" r="1.6" fill="currentColor" class="mark-wire" />
+                <rect x="9" y="40" width="30" height="4" fill="currentColor" />
+              </svg>
+              <div>
+                <p class="eyebrow">AMADEUS · WORLD LINE SHIFT</p>
+                <h1 id="introTitle">世界线穿梭 · 转场原型</h1>
+              </div>
+            </header>
+            <p class="intro-warn" role="note">约 10.6 秒，包含快切、画面撕裂、强光和白场；未做光敏安全评估。对闪光敏感时，请选择“减少动态播放”。</p>
+            <div class="intro-actions">
+              <button class="btn btn-primary btn-lg" id="introStart" type="button">
+                <svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor" /></svg>
+                <span>开始播放</span>
+              </button>
+              <button class="btn btn-lg btn-quiet" id="introCalm" type="button">减少动态播放</button>
+            </div>
+            <p class="intro-note">成功、偏慢、失败三种结果都是本地模拟，未连接任何后端。</p>
+          </section>
+
+          <div class="chip" id="waitChip" hidden><span class="chip-dot" aria-hidden="true"></span>等待模拟结果，尚未锁定</div>
+
+          <div class="result" id="result" hidden>
+            <span class="result-kind" id="resultKind">模拟结果</span>
+            <span class="result-text" id="resultText"></span>
+            <span class="result-note">本地模拟 · 未连接后端</span>
+          </div>
+
+          <div class="glfail" id="glFail" hidden>此浏览器无法启用 WebGL2，演出画面无法显示。</div>
+        </div>
+      </main>
+
+      <div class="progress" id="progress" aria-hidden="true"><span class="progress-fill" id="progressFill"></span></div>
+
+      <footer class="console" id="console" aria-label="演出控制">
+        <div class="console-row">
+          <div class="group transport">
+            <button class="btn btn-primary" id="btnStart" type="button" data-mode="start">
+              <svg class="ico ico-start" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor" /></svg>
+              <svg class="ico ico-replay" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8a4.8 4.8 0 1 0 1.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M2.6 2.2v3.4H6" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+              <span id="btnStartLabel">开始</span>
+            </button>
+            <button class="btn" id="btnPause" type="button" disabled data-paused="false">
+              <svg class="ico ico-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3h2v10H5zM9 3h2v10H9z" fill="currentColor" /></svg>
+              <svg class="ico ico-resume" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor" /></svg>
+              <span id="btnPauseLabel">暂停</span>
+            </button>
+            <button class="btn" id="btnSkip" type="button" disabled>
+              <svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3.2v9.6L9.5 8zM11 3h2v10h-2z" fill="currentColor" /></svg>
+              <span>跳过</span>
+            </button>
+          </div>
+
+          <fieldset class="group seg" id="scenario">
+            <legend>模拟结果</legend>
+            <div class="seg-row">
+              <label><input type="radio" name="scenario" value="success" checked /><span>成功</span></label>
+              <label><input type="radio" name="scenario" value="slow" /><span>偏慢</span></label>
+              <label><input type="radio" name="scenario" value="fail" /><span>失败</span></label>
+            </div>
+          </fieldset>
+
+          <div class="group field" id="dirGroup">
+            <fieldset class="group seg" id="direction">
+              <legend>方向</legend>
+              <div class="seg-row" id="dirRow">
+                <label><input type="radio" name="direction" value="sg2b" checked /><span>SG → β</span></label>
+                <label><input type="radio" name="direction" value="b2sg" /><span>β → SG</span></label>
+              </div>
+            </fieldset>
+            <span class="hint" id="dirHint">1.048596% → 1.129848%</span>
+          </div>
+
+          <div class="group tail">
+            <label class="group switch">
+              <input type="checkbox" id="reduced" />
+              <span class="track" aria-hidden="true"></span>
+              <span>减少动态效果</span>
+            </label>
+
+            <button class="btn btn-icon" id="btnFull" type="button" aria-label="全屏" title="全屏">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+                <path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="console-meta">
+          <p class="status" id="status" role="status" aria-live="polite">待机</p>
+          <p class="keys" aria-hidden="true"><kbd>空格</kbd> 暂停 <kbd>Esc</kbd> 退出演出</p>
+          <a class="link" href="https://github.com/meditecnic/AMADEUS" target="_blank" rel="noopener noreferrer">AMADEUS 主项目 ↗</a>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

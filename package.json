@@ -1,0 +1,21 @@
+{
+  "name": "worldline-transition",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "STEINS;GATE-style world-line transition in WebGL2 (fan-made, mock states only).",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5179 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "build:single": "npm run build && node scripts/build-single.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 5179 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "capture": "node scripts/capture.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.55.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
